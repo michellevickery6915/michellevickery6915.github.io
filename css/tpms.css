@@ -24,7 +24,6 @@ body {
   line-height: 1.5;
 }
 
-/* ── Header ──────────────────────────────────────────────────────── */
 .app-header {
   display: flex;
   align-items: center;
@@ -85,7 +84,6 @@ body {
   50%       { opacity: 0.3; }
 }
 
-/* ── Buttons ──────────────────────────────────────────────────────── */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -126,7 +124,6 @@ body {
 
 .btn-full { width: 100%; justify-content: center; }
 
-/* ── Alert Banner ─────────────────────────────────────────────────── */
 .alert-banner {
   display: flex;
   align-items: center;
@@ -155,7 +152,6 @@ body {
 }
 .alert-banner.warning button { color: var(--yellow); }
 
-/* ── Main Layout ──────────────────────────────────────────────────── */
 .main-content {
   max-width: 1200px;
   margin: 0 auto;
@@ -165,7 +161,6 @@ body {
   gap: 1.5rem;
 }
 
-/* ── Car Overview ─────────────────────────────────────────────────── */
 .car-overview {
   display: grid;
   grid-template-columns: 1fr auto;
@@ -223,7 +218,6 @@ body {
 .rear-left   { bottom: 1rem; left: 0.5rem; }
 .rear-right  { bottom: 1rem; right: 0.5rem; }
 
-/* ── Summary Stats ────────────────────────────────────────────────── */
 .summary-stats {
   display: flex;
   flex-direction: column;
@@ -277,7 +271,6 @@ body {
 .unit-btn:hover { border-color: var(--text-dim); color: var(--text); }
 .unit-btn.active { background: rgba(74,222,128,0.15); border-color: var(--green); color: var(--green); }
 
-/* ── Tyre Grid ────────────────────────────────────────────────────── */
 .tyre-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -316,7 +309,6 @@ body {
 .tyre-indicator.warn   { background: var(--yellow); box-shadow: 0 0 6px var(--yellow); }
 .tyre-indicator.danger { background: var(--red); box-shadow: 0 0 6px var(--red); animation: pulse 1s infinite; }
 
-/* ── Gauge ────────────────────────────────────────────────────────── */
 .gauge-wrap {
   position: relative;
   display: flex;
@@ -332,7 +324,6 @@ body {
 .gauge-value { font-size: 1.75rem; font-weight: 800; line-height: 1; }
 .gauge-unit  { font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; }
 
-/* ── Tyre Meta ────────────────────────────────────────────────────── */
 .tyre-meta {
   display: flex;
   gap: 1rem;
@@ -344,7 +335,6 @@ body {
 .meta-item { display: flex; align-items: center; gap: 0.3rem; }
 .meta-item svg { width: 13px; height: 13px; flex-shrink: 0; }
 
-/* ── Log Section ──────────────────────────────────────────────────── */
 .log-section {
   background: var(--bg-card);
   border: 1px solid var(--border);
@@ -378,7 +368,6 @@ body {
 .log-entry.danger  { color: var(--red); background: rgba(248,113,113,0.05); }
 .log-entry.bt      { color: var(--blue); background: rgba(56,189,248,0.05); }
 
-/* ── Modal ────────────────────────────────────────────────────────── */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -437,7 +426,6 @@ select, .text-input {
 }
 select:focus, .text-input:focus { outline: none; border-color: var(--green); }
 
-/* ── Scrollbar ────────────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }

@@ -1,0 +1,444 @@
+/* ── Reset & Base ─────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:       #0d1117;
+  --bg-card:  #161b22;
+  --bg-panel: #1c2330;
+  --border:   #30363d;
+  --text:     #e6edf3;
+  --text-dim: #8b949e;
+  --green:    #4ade80;
+  --yellow:   #fbbf24;
+  --red:      #f87171;
+  --blue:     #38bdf8;
+  --radius:   12px;
+  --shadow:   0 4px 24px rgba(0,0,0,0.4);
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  line-height: 1.5;
+}
+
+/* ── Header ──────────────────────────────────────────────────────── */
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1.5rem;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.logo-icon { width: 32px; height: 32px; }
+
+.app-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+.app-title span { color: var(--green); }
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.connection-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--text-dim);
+}
+
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.status-dot.disconnected { background: var(--text-dim); }
+.status-dot.connecting   { background: var(--yellow); animation: pulse 1s infinite; }
+.status-dot.connected    { background: var(--green); box-shadow: 0 0 8px var(--green); }
+.status-dot.demo         { background: var(--blue); box-shadow: 0 0 8px var(--blue); }
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.3; }
+}
+
+/* ── Buttons ──────────────────────────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 1rem;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.btn svg { width: 16px; height: 16px; }
+
+.btn-primary {
+  background: var(--green);
+  color: #0d1117;
+  border-color: var(--green);
+}
+.btn-primary:hover { background: #22c55e; }
+
+.btn-secondary {
+  background: transparent;
+  color: var(--text-dim);
+  border-color: var(--border);
+}
+.btn-secondary:hover { color: var(--text); border-color: var(--text-dim); }
+.btn-secondary.active { background: #1e3a5f; color: var(--blue); border-color: var(--blue); }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-dim);
+  border: none;
+  padding: 0.35rem 0.75rem;
+}
+.btn-ghost:hover { color: var(--text); }
+
+.btn-full { width: 100%; justify-content: center; }
+
+/* ── Alert Banner ─────────────────────────────────────────────────── */
+.alert-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 1.5rem;
+  background: rgba(248, 113, 113, 0.15);
+  border-bottom: 1px solid var(--red);
+  color: var(--red);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+.alert-banner svg { width: 18px; height: 18px; flex-shrink: 0; }
+.alert-banner button {
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: var(--red);
+  font-size: 1.25rem;
+  cursor: pointer;
+  line-height: 1;
+}
+.alert-banner.warning {
+  background: rgba(251, 191, 36, 0.15);
+  border-color: var(--yellow);
+  color: var(--yellow);
+}
+.alert-banner.warning button { color: var(--yellow); }
+
+/* ── Main Layout ──────────────────────────────────────────────────── */
+.main-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* ── Car Overview ─────────────────────────────────────────────────── */
+.car-overview {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (max-width: 700px) {
+  .car-overview { grid-template-columns: 1fr; }
+}
+
+.car-top-view {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2.5rem 1rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.car-svg {
+  width: 180px;
+  height: auto;
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.5));
+}
+
+.tyre-badge {
+  position: absolute;
+  background: var(--bg-panel);
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  padding: 0.4rem 0.6rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 58px;
+}
+.tyre-badge:hover { border-color: var(--green); transform: scale(1.05); }
+.tyre-badge.selected { border-color: var(--green); box-shadow: 0 0 12px rgba(74,222,128,0.3); }
+.tyre-badge.ok     { border-color: var(--green); }
+.tyre-badge.warn   { border-color: var(--yellow); }
+.tyre-badge.danger { border-color: var(--red); animation: pulse 1s infinite; }
+
+.badge-pressure {
+  font-size: 1.1rem;
+  font-weight: 700;
+  line-height: 1;
+}
+.badge-unit { font-size: 0.6rem; color: var(--text-dim); text-transform: uppercase; }
+
+.front-left  { top: 1rem; left: 0.5rem; }
+.front-right { top: 1rem; right: 0.5rem; }
+.rear-left   { bottom: 1rem; left: 0.5rem; }
+.rear-right  { bottom: 1rem; right: 0.5rem; }
+
+/* ── Summary Stats ────────────────────────────────────────────────── */
+.summary-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-width: 200px;
+}
+
+@media (max-width: 700px) {
+  .summary-stats { flex-direction: row; flex-wrap: wrap; }
+  .stat-card { flex: 1; min-width: 140px; }
+}
+
+.stat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem;
+}
+.stat-label { font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.35rem; }
+.stat-value { font-size: 1.4rem; font-weight: 700; display: flex; align-items: baseline; gap: 0.3rem; }
+.stat-value small { font-size: 0.75rem; font-weight: 400; color: var(--text-dim); }
+.stat-value input[type=number] {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 1.2rem;
+  font-weight: 700;
+  width: 60px;
+  padding: 0.1rem 0.3rem;
+  text-align: center;
+}
+.stat-value input[type=number]:focus { outline: none; border-color: var(--green); }
+
+.status-ok   { color: var(--green); }
+.status-warn { color: var(--yellow); }
+.status-danger { color: var(--red); }
+
+.unit-toggle { display: flex; gap: 0.3rem; }
+.unit-btn {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-dim);
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.3rem 0.5rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.unit-btn:hover { border-color: var(--text-dim); color: var(--text); }
+.unit-btn.active { background: rgba(74,222,128,0.15); border-color: var(--green); color: var(--green); }
+
+/* ── Tyre Grid ────────────────────────────────────────────────────── */
+.tyre-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.tyre-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.tyre-card:hover { border-color: var(--text-dim); transform: translateY(-2px); box-shadow: var(--shadow); }
+.tyre-card.selected { border-color: var(--green); box-shadow: 0 0 20px rgba(74,222,128,0.15); }
+.tyre-card.ok     { border-color: rgba(74,222,128,0.4); }
+.tyre-card.warn   { border-color: rgba(251,191,36,0.5); }
+.tyre-card.danger { border-color: rgba(248,113,113,0.6); }
+
+.tyre-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.tyre-label { font-size: 0.8rem; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; }
+.tyre-indicator {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--border);
+}
+.tyre-indicator.ok     { background: var(--green); box-shadow: 0 0 6px var(--green); }
+.tyre-indicator.warn   { background: var(--yellow); box-shadow: 0 0 6px var(--yellow); }
+.tyre-indicator.danger { background: var(--red); box-shadow: 0 0 6px var(--red); animation: pulse 1s infinite; }
+
+/* ── Gauge ────────────────────────────────────────────────────────── */
+.gauge-wrap {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.gauge-canvas { display: block; }
+.gauge-center {
+  position: absolute;
+  text-align: center;
+  pointer-events: none;
+}
+.gauge-value { font-size: 1.75rem; font-weight: 800; line-height: 1; }
+.gauge-unit  { font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; }
+
+/* ── Tyre Meta ────────────────────────────────────────────────────── */
+.tyre-meta {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  border-top: 1px solid var(--border);
+  padding-top: 0.75rem;
+}
+.meta-item { display: flex; align-items: center; gap: 0.3rem; }
+.meta-item svg { width: 13px; height: 13px; flex-shrink: 0; }
+
+/* ── Log Section ──────────────────────────────────────────────────── */
+.log-section {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.log-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border);
+}
+.log-header h2 { font-size: 0.9rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-dim); }
+.log-body {
+  max-height: 180px;
+  overflow-y: auto;
+  padding: 0.5rem;
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 0.25rem;
+}
+.log-entry {
+  font-size: 0.8rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: 4px;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+}
+.log-entry.info    { color: var(--text-dim); }
+.log-entry.ok      { color: var(--green); background: rgba(74,222,128,0.05); }
+.log-entry.warning { color: var(--yellow); background: rgba(251,191,36,0.05); }
+.log-entry.danger  { color: var(--red); background: rgba(248,113,113,0.05); }
+.log-entry.bt      { color: var(--blue); background: rgba(56,189,248,0.05); }
+
+/* ── Modal ────────────────────────────────────────────────────────── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(4px);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.modal {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  width: 100%;
+  max-width: 440px;
+  box-shadow: var(--shadow);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+}
+.modal-header h2 { font-size: 1rem; font-weight: 700; }
+.modal-close {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 1.5rem;
+  cursor: pointer;
+  line-height: 1;
+}
+.modal-close:hover { color: var(--text); }
+
+.modal-body { padding: 1.25rem; display: flex; flex-direction: column; gap: 1.25rem; }
+
+.bt-info h3, .bt-protocol h3 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-dim); margin-bottom: 0.5rem; }
+.bt-info ul { padding-left: 1.25rem; font-size: 0.875rem; display: flex; flex-direction: column; gap: 0.25rem; }
+.bt-info .note { font-size: 0.75rem; color: var(--text-dim); margin-top: 0.75rem; background: var(--bg-panel); border-radius: 6px; padding: 0.5rem 0.75rem; border-left: 3px solid var(--blue); }
+
+.scan-status { font-size: 0.8rem; color: var(--text-dim); margin-top: 0.5rem; min-height: 1.2rem; }
+
+select, .text-input {
+  width: 100%;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 0.875rem;
+  padding: 0.45rem 0.75rem;
+}
+select:focus, .text-input:focus { outline: none; border-color: var(--green); }
+
+/* ── Scrollbar ────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }

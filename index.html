@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TPMS — Tyre Pressure Monitor</title>
+  <link rel="stylesheet" href="css/tpms.css" />
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#0d1117" />
+</head>
+<body>
+  <!-- Header -->
+  <header class="app-header">
+    <div class="header-left">
+      <svg class="logo-icon" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="16" cy="16" r="14" stroke="#4ade80" stroke-width="2"/>
+        <circle cx="16" cy="16" r="8" stroke="#4ade80" stroke-width="1.5"/>
+        <circle cx="16" cy="16" r="3" fill="#4ade80"/>
+        <line x1="16" y1="2" x2="16" y2="8" stroke="#4ade80" stroke-width="2"/>
+        <line x1="16" y1="24" x2="16" y2="30" stroke="#4ade80" stroke-width="2"/>
+        <line x1="2" y1="16" x2="8" y2="16" stroke="#4ade80" stroke-width="2"/>
+        <line x1="24" y1="16" x2="30" y2="16" stroke="#4ade80" stroke-width="2"/>
+      </svg>
+      <h1 class="app-title">TPMS <span>Dashboard</span></h1>
+    </div>
+    <div class="header-right">
+      <div class="connection-status" id="connectionStatus">
+        <span class="status-dot disconnected" id="statusDot"></span>
+        <span id="statusText">Disconnected</span>
+      </div>
+      <button class="btn btn-primary" id="bluetoothBtn" onclick="tpms.toggleBluetooth()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5"/>
+        </svg>
+        Connect
+      </button>
+      <button class="btn btn-secondary" id="demoBtn" onclick="tpms.toggleDemo()">
+        Demo Mode
+      </button>
+    </div>
+  </header>
+
+  <!-- Alert Banner -->
+  <div class="alert-banner" id="alertBanner" style="display:none">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+      <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+    </svg>
+    <span id="alertMessage">Warning</span>
+    <button onclick="document.getElementById('alertBanner').style.display='none'">×</button>
+  </div>
+
+  <main class="main-content">
+    <!-- Car Overview -->
+    <section class="car-overview">
+      <div class="car-top-view">
+        <!-- Front Left -->
+        <div class="tyre-badge front-left" id="badge-fl" onclick="tpms.selectTyre('fl')">
+          <div class="badge-pressure" id="bp-fl">--</div>
+          <div class="badge-unit">PSI</div>
+        </div>
+        <!-- Front Right -->
+        <div class="tyre-badge front-right" id="badge-fr" onclick="tpms.selectTyre('fr')">
+          <div class="badge-pressure" id="bp-fr">--</div>
+          <div class="badge-unit">PSI</div>
+        </div>
+
+        <!-- Car Body SVG -->
+        <svg class="car-svg" viewBox="0 0 200 400" xmlns="http://www.w3.org/2000/svg">
+          <!-- Car body -->
+          <rect x="35" y="60" width="130" height="280" rx="20" fill="#1e293b" stroke="#334155" stroke-width="2"/>
+          <!-- Windscreen front -->
+          <rect x="50" y="80" width="100" height="60" rx="8" fill="#0ea5e9" opacity="0.3"/>
+          <!-- Windscreen rear -->
+          <rect x="50" y="265" width="100" height="55" rx="8" fill="#0ea5e9" opacity="0.3"/>
+          <!-- Roof -->
+          <rect x="60" y="145" width="80" height="115" rx="4" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+          <!-- Door lines -->
+          <line x1="100" y1="145" x2="100" y2="260" stroke="#334155" stroke-width="1"/>
+          <line x1="35" y1="200" x2="165" y2="200" stroke="#334155" stroke-width="1"/>
+          <!-- Wheel wells -->
+          <rect x="15" y="80" width="30" height="60" rx="8" fill="#0f172a" stroke="#4ade80" stroke-width="1.5"/>
+          <rect x="155" y="80" width="30" height="60" rx="8" fill="#0f172a" stroke="#4ade80" stroke-width="1.5"/>
+          <rect x="15" y="260" width="30" height="60" rx="8" fill="#0f172a" stroke="#4ade80" stroke-width="1.5"/>
+          <rect x="155" y="260" width="30" height="60" rx="8" fill="#0f172a" stroke="#4ade80" stroke-width="1.5"/>
+          <!-- Headlights -->
+          <rect x="40" y="65" width="35" height="10" rx="3" fill="#fbbf24" opacity="0.8"/>
+          <rect x="125" y="65" width="35" height="10" rx="3" fill="#fbbf24" opacity="0.8"/>
+          <!-- Tail lights -->
+          <rect x="40" y="325" width="35" height="10" rx="3" fill="#ef4444" opacity="0.8"/>
+          <rect x="125" y="325" width="35" height="10" rx="3" fill="#ef4444" opacity="0.8"/>
+          <!-- Direction arrow -->
+          <polygon points="100,10 90,30 100,25 110,30" fill="#4ade80" opacity="0.7"/>
+        </svg>
+
+        <!-- Rear Left -->
+        <div class="tyre-badge rear-left" id="badge-rl" onclick="tpms.selectTyre('rl')">
+          <div class="badge-pressure" id="bp-rl">--</div>
+          <div class="badge-unit">PSI</div>
+        </div>
+        <!-- Rear Right -->
+        <div class="tyre-badge rear-right" id="badge-rr" onclick="tpms.selectTyre('rr')">
+          <div class="badge-pressure" id="bp-rr">--</div>
+          <div class="badge-unit">PSI</div>
+        </div>
+      </div>
+
+      <!-- Summary Stats -->
+      <div class="summary-stats">
+        <div class="stat-card">
+          <div class="stat-label">Avg Pressure</div>
+          <div class="stat-value" id="avgPressure">-- <small>PSI</small></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Target</div>
+          <div class="stat-value">
+            <input type="number" id="targetPressure" value="32" min="20" max="50" onchange="tpms.setTarget(this.value)" />
+            <small>PSI</small>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">System Status</div>
+          <div class="stat-value status-ok" id="systemStatus">STANDBY</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Units</div>
+          <div class="unit-toggle">
+            <button class="unit-btn active" id="unitPsi" onclick="tpms.setUnit('psi')">PSI</button>
+            <button class="unit-btn" id="unitBar" onclick="tpms.setUnit('bar')">BAR</button>
+            <button class="unit-btn" id="unitKpa" onclick="tpms.setUnit('kpa')">kPa</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tyre Detail Cards -->
+    <section class="tyre-grid">
+      <div class="tyre-card" id="card-fl" onclick="tpms.selectTyre('fl')">
+        <div class="tyre-header">
+          <span class="tyre-label">Front Left</span>
+          <span class="tyre-indicator" id="ind-fl"></span>
+        </div>
+        <div class="gauge-wrap">
+          <canvas class="gauge-canvas" id="gauge-fl" width="160" height="160"></canvas>
+          <div class="gauge-center">
+            <div class="gauge-value" id="gv-fl">--</div>
+            <div class="gauge-unit" id="gu-fl">PSI</div>
+          </div>
+        </div>
+        <div class="tyre-meta">
+          <div class="meta-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 14.76V3.5a2.5 2.5 0 00-5 0v11.26a4.5 4.5 0 105 0z"/></svg>
+            <span id="temp-fl">--°C</span>
+          </div>
+          <div class="meta-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <span id="ts-fl">--</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="tyre-card" id="card-fr" onclick="tpms.selectTyre('fr')">
+        <div class="tyre-header">
+          <span class="tyre-label">Front Right</span>
+          <span class="tyre-indicator" id="ind-fr"></span>
+        </div>
+        <div class="gauge-wrap">
+          <canvas class="gauge-canvas" id="gauge-fr" width="160" height="160"></canvas>
+          <div class="gauge-center">
+            <div class="gauge-value" id="gv-fr">--</div>
+            <div class="gauge-unit" id="gu-fr">PSI</div>
+          </div>
+        </div>
+        <div class="tyre-meta">
+          <div class="meta-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 14.76V3.5a2.5 2.5 0 00-5 0v11.26a4.5 4.5 0 105 0z"/></svg>
+            <span id="temp-fr">--°C</span>
+          </div>
+          <div class="meta-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <span id="ts-fr">--</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="tyre-card" id="card-rl" onclick="tpms.selectTyre('rl')">
+        <div class="tyre-header">
+          <span class="tyre-label">Rear Left</span>
+          <span class="tyre-indicator" id="ind-rl"></span>
+        </div>
+        <div class="gauge-wrap">
+          <canvas class="gauge-canvas" id="gauge-rl" width="160" height="160"></canvas>
+          <div class="gauge-center">
+            <div class="gauge-value" id="gv-rl">--</div>
+            <div class="gauge-unit" id="gu-rl">PSI</div>
+          </div>
+        </div>
+        <div class="tyre-meta">
+          <div class="meta-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 14.76V3.5a2.5 2.5 0 00-5 0v11.26a4.5 4.5 0 105 0z"/></svg>
+            <span id="temp-rl">--°C</span>
+          </div>
+          <div class="meta-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <span id="ts-rl">--</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="tyre-card" id="card-rr" onclick="tpms.selectTyre('rr')">
+        <div class="tyre-header">
+          <span class="tyre-label">Rear Right</span>
+          <span class="tyre-indicator" id="ind-rr"></span>
+        </div>
+        <div class="gauge-wrap">
+          <canvas class="gauge-canvas" id="gauge-rr" width="160" height="160"></canvas>
+          <div class="gauge-center">
+            <div class="gauge-value" id="gv-rr">--</div>
+            <div class="gauge-unit" id="gu-rr">PSI</div>
+          </div>
+        </div>
+        <div class="tyre-meta">
+          <div class="meta-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 14.76V3.5a2.5 2.5 0 00-5 0v11.26a4.5 4.5 0 105 0z"/></svg>
+            <span id="temp-rr">--°C</span>
+          </div>
+          <div class="meta-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <span id="ts-rr">--</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Event Log -->
+    <section class="log-section">
+      <div class="log-header">
+        <h2>Event Log</h2>
+        <button class="btn btn-ghost" onclick="tpms.clearLog()">Clear</button>
+      </div>
+      <div class="log-body" id="eventLog">
+        <div class="log-entry info">System initialised. Connect a Bluetooth TPMS sensor or enable Demo Mode.</div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Bluetooth Modal -->
+  <div class="modal-overlay" id="btModal" style="display:none">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Bluetooth Setup</h2>
+        <button class="modal-close" onclick="tpms.closeBtModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="bt-info">
+          <h3>Supported Devices</h3>
+          <ul>
+            <li>Generic BLE TPMS Sensors (4-wheel kit)</li>
+            <li>ELM327 OBD2 Bluetooth Adapters</li>
+            <li>Steelmate / Tyredog BLE modules</li>
+          </ul>
+          <p class="note">Web Bluetooth requires Chrome / Edge on Android or desktop. Not supported on iOS Safari.</p>
+        </div>
+        <div class="bt-scan" id="btScanArea">
+          <button class="btn btn-primary btn-full" id="scanBtn" onclick="tpms.startBluetoothScan()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            Scan for Devices
+          </button>
+          <div id="scanStatus" class="scan-status"></div>
+        </div>
+        <div class="bt-protocol">
+          <h3>Protocol</h3>
+          <select id="protocolSelect" onchange="tpms.setProtocol(this.value)">
+            <option value="tpms_ble">TPMS BLE (Generic)</option>
+            <option value="obd2">OBD2 / ELM327</option>
+            <option value="custom">Custom UUID</option>
+          </select>
+          <div id="customUuidRow" style="display:none; margin-top:0.5rem;">
+            <input type="text" id="customServiceUuid" placeholder="Service UUID" class="text-input" />
+            <input type="text" id="customCharUuid" placeholder="Characteristic UUID" class="text-input" style="margin-top:0.25rem;" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/tpms.js"></script>
+</body>
+</html>

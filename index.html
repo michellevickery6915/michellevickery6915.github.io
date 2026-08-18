@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pantry Chef &mdash; Recipes from what you have</title>
+<meta name="description" content="Track your pantry, freezer, and grocery items and get recipe ideas from what you already have.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app">
+
+  <header class="site-header">
+    <div class="site-header__title">
+      <span class="site-header__mark">🍲</span>
+      <div>
+        <h1>Pantry Chef</h1>
+        <p>Add what's in your pantry, freezer &amp; fridge&mdash;get recipes you can actually make.</p>
+      </div>
+    </div>
+    <button id="clear-all-btn" class="btn btn--ghost" title="Remove all items">Clear all items</button>
+  </header>
+
+  <main class="layout">
+
+    <section class="panel" aria-labelledby="inventory-heading">
+      <h2 id="inventory-heading">Your Items</h2>
+
+      <form id="add-item-form" class="add-form">
+        <input
+          type="text"
+          id="item-name"
+          placeholder="e.g. chicken breast, rice, garlic&hellip;"
+          autocomplete="off"
+          required
+        >
+        <select id="item-category">
+          <option value="pantry">Pantry</option>
+          <option value="freezer">Freezer</option>
+          <option value="grocery">Fridge / Grocery</option>
+        </select>
+        <button type="submit" class="btn btn--primary">Add</button>
+      </form>
+
+      <div class="tabs" role="tablist">
+        <button class="tab is-active" data-category="pantry" role="tab">Pantry <span class="tab__count" id="count-pantry">0</span></button>
+        <button class="tab" data-category="freezer" role="tab">Freezer <span class="tab__count" id="count-freezer">0</span></button>
+        <button class="tab" data-category="grocery" role="tab">Fridge / Grocery <span class="tab__count" id="count-grocery">0</span></button>
+      </div>
+
+      <ul id="item-list" class="item-list" aria-live="polite"></ul>
+      <p id="empty-state" class="empty-state">No items yet &mdash; add a few above to get started.</p>
+
+      <div class="panel__footer">
+        <span id="total-count" class="total-count">0 items total</span>
+        <button id="generate-btn" class="btn btn--accent">Find recipes &rarr;</button>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="recipes-heading">
+      <div class="panel__row">
+        <h2 id="recipes-heading">Recipe Ideas</h2>
+        <label class="toggle">
+          <input type="checkbox" id="strict-toggle">
+          Only show recipes I can fully make
+        </label>
+      </div>
+      <div id="recipe-results" class="recipe-results">
+        <p class="placeholder">Add some items and click <strong>Find recipes</strong> to see what you can cook.</p>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="site-footer">
+    <p>Everything is stored locally in your browser&mdash;nothing is uploaded anywhere.</p>
+  </footer>
+
+</div>
+
+<script src="recipes.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

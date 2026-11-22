@@ -4,15 +4,113 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TPMS — Tyre Pressure Monitor</title>
-  <link rel="stylesheet" href="css/tpms.css" />
-  <link rel="manifest" href="manifest.json" />
-  <meta name="theme-color" content="#0d1117" />
+  <style>
+/* Reset & Base */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg:#0d1117; --bg-card:#161b22; --bg-panel:#1c2330; --border:#30363d;
+  --text:#e6edf3; --text-dim:#8b949e; --green:#4ade80; --yellow:#fbbf24;
+  --red:#f87171; --blue:#38bdf8; --radius:12px; --shadow:0 4px 24px rgba(0,0,0,0.4);
+}
+body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; line-height:1.5; }
+.app-header { display:flex; align-items:center; justify-content:space-between; padding:0.75rem 1.5rem; background:var(--bg-card); border-bottom:1px solid var(--border); position:sticky; top:0; z-index:100; gap:1rem; flex-wrap:wrap; }
+.header-left { display:flex; align-items:center; gap:0.75rem; }
+.logo-icon { width:32px; height:32px; }
+.app-title { font-size:1.25rem; font-weight:700; letter-spacing:0.05em; }
+.app-title span { color:var(--green); }
+.header-right { display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap; }
+.connection-status { display:flex; align-items:center; gap:0.5rem; font-size:0.875rem; color:var(--text-dim); }
+.status-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+.status-dot.disconnected { background:var(--text-dim); }
+.status-dot.connecting { background:var(--yellow); animation:pulse 1s infinite; }
+.status-dot.connected { background:var(--green); box-shadow:0 0 8px var(--green); }
+.status-dot.demo { background:var(--blue); box-shadow:0 0 8px var(--blue); }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+.btn { display:inline-flex; align-items:center; gap:0.4rem; padding:0.45rem 1rem; border-radius:8px; border:1px solid transparent; font-size:0.875rem; font-weight:600; cursor:pointer; transition:all 0.15s; white-space:nowrap; }
+.btn svg { width:16px; height:16px; }
+.btn-primary { background:var(--green); color:#0d1117; border-color:var(--green); }
+.btn-primary:hover { background:#22c55e; }
+.btn-secondary { background:transparent; color:var(--text-dim); border-color:var(--border); }
+.btn-secondary:hover { color:var(--text); border-color:var(--text-dim); }
+.btn-secondary.active { background:#1e3a5f; color:var(--blue); border-color:var(--blue); }
+.btn-ghost { background:transparent; color:var(--text-dim); border:none; padding:0.35rem 0.75rem; }
+.btn-full { width:100%; justify-content:center; }
+.alert-banner { display:flex; align-items:center; gap:0.75rem; padding:0.6rem 1.5rem; background:rgba(248,113,113,0.15); border-bottom:1px solid var(--red); color:var(--red); font-size:0.9rem; font-weight:600; }
+.alert-banner svg { width:18px; height:18px; flex-shrink:0; }
+.alert-banner button { margin-left:auto; background:none; border:none; color:var(--red); font-size:1.25rem; cursor:pointer; }
+.alert-banner.warning { background:rgba(251,191,36,0.15); border-color:var(--yellow); color:var(--yellow); }
+.alert-banner.warning button { color:var(--yellow); }
+.main-content { max-width:1200px; margin:0 auto; padding:1.5rem; display:flex; flex-direction:column; gap:1.5rem; }
+.car-overview { display:grid; grid-template-columns:1fr auto; gap:1.5rem; align-items:start; }
+@media(max-width:700px){.car-overview{grid-template-columns:1fr}}
+.car-top-view { position:relative; display:flex; justify-content:center; align-items:center; padding:2.5rem 1rem; background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); }
+.car-svg { width:180px; height:auto; filter:drop-shadow(0 4px 12px rgba(0,0,0,0.5)); }
+.tyre-badge { position:absolute; background:var(--bg-panel); border:2px solid var(--border); border-radius:8px; padding:0.4rem 0.6rem; text-align:center; cursor:pointer; transition:all 0.2s; min-width:58px; }
+.tyre-badge:hover { border-color:var(--green); transform:scale(1.05); }
+.tyre-badge.ok { border-color:var(--green); }
+.tyre-badge.warn { border-color:var(--yellow); }
+.tyre-badge.danger { border-color:var(--red); animation:pulse 1s infinite; }
+.badge-pressure { font-size:1.1rem; font-weight:700; line-height:1; }
+.badge-unit { font-size:0.6rem; color:var(--text-dim); text-transform:uppercase; }
+.front-left { top:1rem; left:0.5rem; }
+.front-right { top:1rem; right:0.5rem; }
+.rear-left { bottom:1rem; left:0.5rem; }
+.rear-right { bottom:1rem; right:0.5rem; }
+.summary-stats { display:flex; flex-direction:column; gap:0.75rem; min-width:200px; }
+@media(max-width:700px){.summary-stats{flex-direction:row;flex-wrap:wrap}.stat-card{flex:1;min-width:140px}}
+.stat-card { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); padding:1rem; }
+.stat-label { font-size:0.75rem; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:0.35rem; }
+.stat-value { font-size:1.4rem; font-weight:700; display:flex; align-items:baseline; gap:0.3rem; }
+.stat-value small { font-size:0.75rem; font-weight:400; color:var(--text-dim); }
+.stat-value input[type=number] { background:var(--bg-panel); border:1px solid var(--border); border-radius:6px; color:var(--text); font-size:1.2rem; font-weight:700; width:60px; padding:0.1rem 0.3rem; text-align:center; }
+.status-ok { color:var(--green); } .status-warn { color:var(--yellow); } .status-danger { color:var(--red); }
+.unit-toggle { display:flex; gap:0.3rem; }
+.unit-btn { background:var(--bg-panel); border:1px solid var(--border); border-radius:6px; color:var(--text-dim); font-size:0.75rem; font-weight:600; padding:0.3rem 0.5rem; cursor:pointer; transition:all 0.15s; }
+.unit-btn.active { background:rgba(74,222,128,0.15); border-color:var(--green); color:var(--green); }
+.tyre-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:1rem; }
+.tyre-card { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); padding:1.25rem; cursor:pointer; transition:all 0.2s; display:flex; flex-direction:column; gap:0.75rem; }
+.tyre-card:hover { border-color:var(--text-dim); transform:translateY(-2px); box-shadow:var(--shadow); }
+.tyre-card.ok { border-color:rgba(74,222,128,0.4); } .tyre-card.warn { border-color:rgba(251,191,36,0.5); } .tyre-card.danger { border-color:rgba(248,113,113,0.6); }
+.tyre-header { display:flex; justify-content:space-between; align-items:center; }
+.tyre-label { font-size:0.8rem; font-weight:600; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.05em; }
+.tyre-indicator { width:10px; height:10px; border-radius:50%; background:var(--border); }
+.tyre-indicator.ok { background:var(--green); box-shadow:0 0 6px var(--green); }
+.tyre-indicator.warn { background:var(--yellow); box-shadow:0 0 6px var(--yellow); }
+.tyre-indicator.danger { background:var(--red); box-shadow:0 0 6px var(--red); animation:pulse 1s infinite; }
+.gauge-wrap { position:relative; display:flex; justify-content:center; align-items:center; }
+.gauge-canvas { display:block; }
+.gauge-center { position:absolute; text-align:center; pointer-events:none; }
+.gauge-value { font-size:1.75rem; font-weight:800; line-height:1; }
+.gauge-unit { font-size:0.7rem; color:var(--text-dim); text-transform:uppercase; }
+.tyre-meta { display:flex; gap:1rem; font-size:0.8rem; color:var(--text-dim); border-top:1px solid var(--border); padding-top:0.75rem; }
+.meta-item { display:flex; align-items:center; gap:0.3rem; }
+.meta-item svg { width:13px; height:13px; flex-shrink:0; }
+.log-section { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); }
+.log-header { display:flex; justify-content:space-between; align-items:center; padding:0.75rem 1rem; border-bottom:1px solid var(--border); }
+.log-header h2 { font-size:0.9rem; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-dim); }
+.log-body { max-height:180px; overflow-y:auto; padding:0.5rem; display:flex; flex-direction:column-reverse; gap:0.25rem; }
+.log-entry { font-size:0.8rem; padding:0.3rem 0.6rem; border-radius:4px; font-family:'SF Mono','Fira Code',monospace; }
+.log-entry.info { color:var(--text-dim); } .log-entry.ok { color:var(--green); background:rgba(74,222,128,0.05); }
+.log-entry.warning { color:var(--yellow); background:rgba(251,191,36,0.05); } .log-entry.danger { color:var(--red); background:rgba(248,113,113,0.05); }
+.log-entry.bt { color:var(--blue); background:rgba(56,189,248,0.05); }
+.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.7); backdrop-filter:blur(4px); z-index:200; display:flex; align-items:center; justify-content:center; padding:1rem; }
+.modal { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); width:100%; max-width:440px; box-shadow:var(--shadow); }
+.modal-header { display:flex; justify-content:space-between; align-items:center; padding:1rem 1.25rem; border-bottom:1px solid var(--border); }
+.modal-header h2 { font-size:1rem; font-weight:700; }
+.modal-close { background:none; border:none; color:var(--text-dim); font-size:1.5rem; cursor:pointer; }
+.modal-body { padding:1.25rem; display:flex; flex-direction:column; gap:1.25rem; }
+.bt-info h3,.bt-protocol h3 { font-size:0.8rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-dim); margin-bottom:0.5rem; }
+.bt-info ul { padding-left:1.25rem; font-size:0.875rem; display:flex; flex-direction:column; gap:0.25rem; }
+.bt-info .note { font-size:0.75rem; color:var(--text-dim); margin-top:0.75rem; background:var(--bg-panel); border-radius:6px; padding:0.5rem 0.75rem; border-left:3px solid var(--blue); }
+.scan-status { font-size:0.8rem; color:var(--text-dim); margin-top:0.5rem; min-height:1.2rem; }
+select,.text-input { width:100%; background:var(--bg-panel); border:1px solid var(--border); border-radius:6px; color:var(--text); font-size:0.875rem; padding:0.45rem 0.75rem; }
+::-webkit-scrollbar{width:6px} ::-webkit-scrollbar-track{background:transparent} ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+  </style>
 </head>
 <body>
-  <!-- Header -->
   <header class="app-header">
     <div class="header-left">
-      <svg class="logo-icon" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <svg class="logo-icon" viewBox="0 0 32 32" fill="none">
         <circle cx="16" cy="16" r="14" stroke="#4ade80" stroke-width="2"/>
         <circle cx="16" cy="16" r="8" stroke="#4ade80" stroke-width="1.5"/>
         <circle cx="16" cy="16" r="3" fill="#4ade80"/>
@@ -24,248 +122,98 @@
       <h1 class="app-title">TPMS <span>Dashboard</span></h1>
     </div>
     <div class="header-right">
-      <div class="connection-status" id="connectionStatus">
+      <div class="connection-status">
         <span class="status-dot disconnected" id="statusDot"></span>
         <span id="statusText">Disconnected</span>
       </div>
       <button class="btn btn-primary" id="bluetoothBtn" onclick="tpms.toggleBluetooth()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5"/>
-        </svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5"/></svg>
         Connect
       </button>
-      <button class="btn btn-secondary" id="demoBtn" onclick="tpms.toggleDemo()">
-        Demo Mode
-      </button>
+      <button class="btn btn-secondary" id="demoBtn" onclick="tpms.toggleDemo()">Demo Mode</button>
     </div>
   </header>
 
-  <!-- Alert Banner -->
   <div class="alert-banner" id="alertBanner" style="display:none">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
-      <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
-    </svg>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
     <span id="alertMessage">Warning</span>
     <button onclick="document.getElementById('alertBanner').style.display='none'">×</button>
   </div>
 
   <main class="main-content">
-    <!-- Car Overview -->
     <section class="car-overview">
       <div class="car-top-view">
-        <!-- Front Left -->
-        <div class="tyre-badge front-left" id="badge-fl" onclick="tpms.selectTyre('fl')">
-          <div class="badge-pressure" id="bp-fl">--</div>
-          <div class="badge-unit">PSI</div>
-        </div>
-        <!-- Front Right -->
-        <div class="tyre-badge front-right" id="badge-fr" onclick="tpms.selectTyre('fr')">
-          <div class="badge-pressure" id="bp-fr">--</div>
-          <div class="badge-unit">PSI</div>
-        </div>
-
-        <!-- Car Body SVG -->
-        <svg class="car-svg" viewBox="0 0 200 400" xmlns="http://www.w3.org/2000/svg">
-          <!-- Car body -->
+        <div class="tyre-badge front-left" id="badge-fl" onclick="tpms.selectTyre('fl')"><div class="badge-pressure" id="bp-fl">--</div><div class="badge-unit">PSI</div></div>
+        <div class="tyre-badge front-right" id="badge-fr" onclick="tpms.selectTyre('fr')"><div class="badge-pressure" id="bp-fr">--</div><div class="badge-unit">PSI</div></div>
+        <svg class="car-svg" viewBox="0 0 200 400">
           <rect x="35" y="60" width="130" height="280" rx="20" fill="#1e293b" stroke="#334155" stroke-width="2"/>
-          <!-- Windscreen front -->
           <rect x="50" y="80" width="100" height="60" rx="8" fill="#0ea5e9" opacity="0.3"/>
-          <!-- Windscreen rear -->
           <rect x="50" y="265" width="100" height="55" rx="8" fill="#0ea5e9" opacity="0.3"/>
-          <!-- Roof -->
           <rect x="60" y="145" width="80" height="115" rx="4" fill="#1e293b" stroke="#334155" stroke-width="1"/>
-          <!-- Door lines -->
           <line x1="100" y1="145" x2="100" y2="260" stroke="#334155" stroke-width="1"/>
           <line x1="35" y1="200" x2="165" y2="200" stroke="#334155" stroke-width="1"/>
-          <!-- Wheel wells -->
           <rect x="15" y="80" width="30" height="60" rx="8" fill="#0f172a" stroke="#4ade80" stroke-width="1.5"/>
           <rect x="155" y="80" width="30" height="60" rx="8" fill="#0f172a" stroke="#4ade80" stroke-width="1.5"/>
           <rect x="15" y="260" width="30" height="60" rx="8" fill="#0f172a" stroke="#4ade80" stroke-width="1.5"/>
           <rect x="155" y="260" width="30" height="60" rx="8" fill="#0f172a" stroke="#4ade80" stroke-width="1.5"/>
-          <!-- Headlights -->
           <rect x="40" y="65" width="35" height="10" rx="3" fill="#fbbf24" opacity="0.8"/>
           <rect x="125" y="65" width="35" height="10" rx="3" fill="#fbbf24" opacity="0.8"/>
-          <!-- Tail lights -->
           <rect x="40" y="325" width="35" height="10" rx="3" fill="#ef4444" opacity="0.8"/>
           <rect x="125" y="325" width="35" height="10" rx="3" fill="#ef4444" opacity="0.8"/>
-          <!-- Direction arrow -->
           <polygon points="100,10 90,30 100,25 110,30" fill="#4ade80" opacity="0.7"/>
         </svg>
-
-        <!-- Rear Left -->
-        <div class="tyre-badge rear-left" id="badge-rl" onclick="tpms.selectTyre('rl')">
-          <div class="badge-pressure" id="bp-rl">--</div>
-          <div class="badge-unit">PSI</div>
-        </div>
-        <!-- Rear Right -->
-        <div class="tyre-badge rear-right" id="badge-rr" onclick="tpms.selectTyre('rr')">
-          <div class="badge-pressure" id="bp-rr">--</div>
-          <div class="badge-unit">PSI</div>
-        </div>
+        <div class="tyre-badge rear-left" id="badge-rl" onclick="tpms.selectTyre('rl')"><div class="badge-pressure" id="bp-rl">--</div><div class="badge-unit">PSI</div></div>
+        <div class="tyre-badge rear-right" id="badge-rr" onclick="tpms.selectTyre('rr')"><div class="badge-pressure" id="bp-rr">--</div><div class="badge-unit">PSI</div></div>
       </div>
-
-      <!-- Summary Stats -->
       <div class="summary-stats">
-        <div class="stat-card">
-          <div class="stat-label">Avg Pressure</div>
-          <div class="stat-value" id="avgPressure">-- <small>PSI</small></div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Target</div>
-          <div class="stat-value">
-            <input type="number" id="targetPressure" value="32" min="20" max="50" onchange="tpms.setTarget(this.value)" />
-            <small>PSI</small>
-          </div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">System Status</div>
-          <div class="stat-value status-ok" id="systemStatus">STANDBY</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Units</div>
-          <div class="unit-toggle">
-            <button class="unit-btn active" id="unitPsi" onclick="tpms.setUnit('psi')">PSI</button>
-            <button class="unit-btn" id="unitBar" onclick="tpms.setUnit('bar')">BAR</button>
-            <button class="unit-btn" id="unitKpa" onclick="tpms.setUnit('kpa')">kPa</button>
-          </div>
-        </div>
+        <div class="stat-card"><div class="stat-label">Avg Pressure</div><div class="stat-value" id="avgPressure">-- <small>PSI</small></div></div>
+        <div class="stat-card"><div class="stat-label">Target</div><div class="stat-value"><input type="number" id="targetPressure" value="32" min="20" max="50" onchange="tpms.setTarget(this.value)"/><small>PSI</small></div></div>
+        <div class="stat-card"><div class="stat-label">System Status</div><div class="stat-value" id="systemStatus">STANDBY</div></div>
+        <div class="stat-card"><div class="stat-label">Units</div><div class="unit-toggle"><button class="unit-btn active" id="unitPsi" onclick="tpms.setUnit('psi')">PSI</button><button class="unit-btn" id="unitBar" onclick="tpms.setUnit('bar')">BAR</button><button class="unit-btn" id="unitKpa" onclick="tpms.setUnit('kpa')">kPa</button></div></div>
       </div>
     </section>
 
-    <!-- Tyre Detail Cards -->
     <section class="tyre-grid">
       <div class="tyre-card" id="card-fl" onclick="tpms.selectTyre('fl')">
-        <div class="tyre-header">
-          <span class="tyre-label">Front Left</span>
-          <span class="tyre-indicator" id="ind-fl"></span>
-        </div>
-        <div class="gauge-wrap">
-          <canvas class="gauge-canvas" id="gauge-fl" width="160" height="160"></canvas>
-          <div class="gauge-center">
-            <div class="gauge-value" id="gv-fl">--</div>
-            <div class="gauge-unit" id="gu-fl">PSI</div>
-          </div>
-        </div>
-        <div class="tyre-meta">
-          <div class="meta-item">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 14.76V3.5a2.5 2.5 0 00-5 0v11.26a4.5 4.5 0 105 0z"/></svg>
-            <span id="temp-fl">--°C</span>
-          </div>
-          <div class="meta-item">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-            <span id="ts-fl">--</span>
-          </div>
-        </div>
+        <div class="tyre-header"><span class="tyre-label">Front Left</span><span class="tyre-indicator" id="ind-fl"></span></div>
+        <div class="gauge-wrap"><canvas class="gauge-canvas" id="gauge-fl" width="160" height="160"></canvas><div class="gauge-center"><div class="gauge-value" id="gv-fl">--</div><div class="gauge-unit" id="gu-fl">PSI</div></div></div>
+        <div class="tyre-meta"><div class="meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 14.76V3.5a2.5 2.5 0 00-5 0v11.26a4.5 4.5 0 105 0z"/></svg><span id="temp-fl">--°C</span></div><div class="meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span id="ts-fl">--</span></div></div>
       </div>
-
       <div class="tyre-card" id="card-fr" onclick="tpms.selectTyre('fr')">
-        <div class="tyre-header">
-          <span class="tyre-label">Front Right</span>
-          <span class="tyre-indicator" id="ind-fr"></span>
-        </div>
-        <div class="gauge-wrap">
-          <canvas class="gauge-canvas" id="gauge-fr" width="160" height="160"></canvas>
-          <div class="gauge-center">
-            <div class="gauge-value" id="gv-fr">--</div>
-            <div class="gauge-unit" id="gu-fr">PSI</div>
-          </div>
-        </div>
-        <div class="tyre-meta">
-          <div class="meta-item">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 14.76V3.5a2.5 2.5 0 00-5 0v11.26a4.5 4.5 0 105 0z"/></svg>
-            <span id="temp-fr">--°C</span>
-          </div>
-          <div class="meta-item">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-            <span id="ts-fr">--</span>
-          </div>
-        </div>
+        <div class="tyre-header"><span class="tyre-label">Front Right</span><span class="tyre-indicator" id="ind-fr"></span></div>
+        <div class="gauge-wrap"><canvas class="gauge-canvas" id="gauge-fr" width="160" height="160"></canvas><div class="gauge-center"><div class="gauge-value" id="gv-fr">--</div><div class="gauge-unit" id="gu-fr">PSI</div></div></div>
+        <div class="tyre-meta"><div class="meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 14.76V3.5a2.5 2.5 0 00-5 0v11.26a4.5 4.5 0 105 0z"/></svg><span id="temp-fr">--°C</span></div><div class="meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span id="ts-fr">--</span></div></div>
       </div>
-
       <div class="tyre-card" id="card-rl" onclick="tpms.selectTyre('rl')">
-        <div class="tyre-header">
-          <span class="tyre-label">Rear Left</span>
-          <span class="tyre-indicator" id="ind-rl"></span>
-        </div>
-        <div class="gauge-wrap">
-          <canvas class="gauge-canvas" id="gauge-rl" width="160" height="160"></canvas>
-          <div class="gauge-center">
-            <div class="gauge-value" id="gv-rl">--</div>
-            <div class="gauge-unit" id="gu-rl">PSI</div>
-          </div>
-        </div>
-        <div class="tyre-meta">
-          <div class="meta-item">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 14.76V3.5a2.5 2.5 0 00-5 0v11.26a4.5 4.5 0 105 0z"/></svg>
-            <span id="temp-rl">--°C</span>
-          </div>
-          <div class="meta-item">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-            <span id="ts-rl">--</span>
-          </div>
-        </div>
+        <div class="tyre-header"><span class="tyre-label">Rear Left</span><span class="tyre-indicator" id="ind-rl"></span></div>
+        <div class="gauge-wrap"><canvas class="gauge-canvas" id="gauge-rl" width="160" height="160"></canvas><div class="gauge-center"><div class="gauge-value" id="gv-rl">--</div><div class="gauge-unit" id="gu-rl">PSI</div></div></div>
+        <div class="tyre-meta"><div class="meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 14.76V3.5a2.5 2.5 0 00-5 0v11.26a4.5 4.5 0 105 0z"/></svg><span id="temp-rl">--°C</span></div><div class="meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span id="ts-rl">--</span></div></div>
       </div>
-
       <div class="tyre-card" id="card-rr" onclick="tpms.selectTyre('rr')">
-        <div class="tyre-header">
-          <span class="tyre-label">Rear Right</span>
-          <span class="tyre-indicator" id="ind-rr"></span>
-        </div>
-        <div class="gauge-wrap">
-          <canvas class="gauge-canvas" id="gauge-rr" width="160" height="160"></canvas>
-          <div class="gauge-center">
-            <div class="gauge-value" id="gv-rr">--</div>
-            <div class="gauge-unit" id="gu-rr">PSI</div>
-          </div>
-        </div>
-        <div class="tyre-meta">
-          <div class="meta-item">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 14.76V3.5a2.5 2.5 0 00-5 0v11.26a4.5 4.5 0 105 0z"/></svg>
-            <span id="temp-rr">--°C</span>
-          </div>
-          <div class="meta-item">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-            <span id="ts-rr">--</span>
-          </div>
-        </div>
+        <div class="tyre-header"><span class="tyre-label">Rear Right</span><span class="tyre-indicator" id="ind-rr"></span></div>
+        <div class="gauge-wrap"><canvas class="gauge-canvas" id="gauge-rr" width="160" height="160"></canvas><div class="gauge-center"><div class="gauge-value" id="gv-rr">--</div><div class="gauge-unit" id="gu-rr">PSI</div></div></div>
+        <div class="tyre-meta"><div class="meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 14.76V3.5a2.5 2.5 0 00-5 0v11.26a4.5 4.5 0 105 0z"/></svg><span id="temp-rr">--°C</span></div><div class="meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span id="ts-rr">--</span></div></div>
       </div>
     </section>
 
-    <!-- Event Log -->
     <section class="log-section">
-      <div class="log-header">
-        <h2>Event Log</h2>
-        <button class="btn btn-ghost" onclick="tpms.clearLog()">Clear</button>
-      </div>
-      <div class="log-body" id="eventLog">
-        <div class="log-entry info">System initialised. Connect a Bluetooth TPMS sensor or enable Demo Mode.</div>
-      </div>
+      <div class="log-header"><h2>Event Log</h2><button class="btn-ghost" onclick="tpms.clearLog()">Clear</button></div>
+      <div class="log-body" id="eventLog"><div class="log-entry info">System initialised. Enable Demo Mode to see live gauges.</div></div>
     </section>
   </main>
 
-  <!-- Bluetooth Modal -->
   <div class="modal-overlay" id="btModal" style="display:none">
     <div class="modal">
-      <div class="modal-header">
-        <h2>Bluetooth Setup</h2>
-        <button class="modal-close" onclick="tpms.closeBtModal()">×</button>
-      </div>
+      <div class="modal-header"><h2>Bluetooth Setup</h2><button class="modal-close" onclick="tpms.closeBtModal()">×</button></div>
       <div class="modal-body">
         <div class="bt-info">
           <h3>Supported Devices</h3>
-          <ul>
-            <li>Generic BLE TPMS Sensors (4-wheel kit)</li>
-            <li>ELM327 OBD2 Bluetooth Adapters</li>
-            <li>Steelmate / Tyredog BLE modules</li>
-          </ul>
+          <ul><li>Generic BLE TPMS Sensors (4-wheel kit)</li><li>ELM327 OBD2 Bluetooth Adapters</li><li>Steelmate / Tyredog BLE modules</li></ul>
           <p class="note">Web Bluetooth requires Chrome / Edge on Android or desktop. Not supported on iOS Safari.</p>
         </div>
-        <div class="bt-scan" id="btScanArea">
-          <button class="btn btn-primary btn-full" id="scanBtn" onclick="tpms.startBluetoothScan()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-            </svg>
+        <div class="bt-scan">
+          <button class="btn btn-primary btn-full" onclick="tpms.startBluetoothScan()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
             Scan for Devices
           </button>
           <div id="scanStatus" class="scan-status"></div>
@@ -277,15 +225,143 @@
             <option value="obd2">OBD2 / ELM327</option>
             <option value="custom">Custom UUID</option>
           </select>
-          <div id="customUuidRow" style="display:none; margin-top:0.5rem;">
-            <input type="text" id="customServiceUuid" placeholder="Service UUID" class="text-input" />
-            <input type="text" id="customCharUuid" placeholder="Characteristic UUID" class="text-input" style="margin-top:0.25rem;" />
+          <div id="customUuidRow" style="display:none;margin-top:0.5rem">
+            <input type="text" id="customServiceUuid" placeholder="Service UUID" class="text-input"/>
+            <input type="text" id="customCharUuid" placeholder="Characteristic UUID" class="text-input" style="margin-top:0.25rem"/>
           </div>
         </div>
       </div>
     </div>
   </div>
 
-  <script src="js/tpms.js"></script>
+<script>
+'use strict';
+const TYRE_IDS=['fl','fr','rl','rr'];
+const BLE_PROFILES={tpms_ble:{services:[0x180a,'fbb0','00001816-0000-1000-8000-00805f9b34fb'],name_filter:['TPMS','Tyre','Tire','TP','ZEEPIN','FOBO'],char_uuid:'0000fbb2-0000-1000-8000-00805f9b34fb'},obd2:{services:['fff0','18f0','0000fff0-0000-1000-8000-00805f9b34fb'],name_filter:['OBD','ELM','OBDII','VEEPEAK','KONNWEI'],char_uuid:'0000fff1-0000-1000-8000-00805f9b34fb'}};
+const UNIT_FACTOR={psi:1,bar:0.0689476,kpa:6.89476};
+const UNIT_LABEL={psi:'PSI',bar:'BAR',kpa:'kPa'};
+const THRESHOLD={low:26,critical:20,high:44};
+const state={tyres:{fl:{pressure:null,temp:null,updated:null},fr:{pressure:null,temp:null,updated:null},rl:{pressure:null,temp:null,updated:null},rr:{pressure:null,temp:null,updated:null}},target:32,unit:'psi',selected:null,demo:false,demoInterval:null,btDevice:null,btChar:null,protocol:'tpms_ble'};
+
+function drawGauge(id,pressure,target){
+  const canvas=document.getElementById('gauge-'+id);if(!canvas)return;
+  const ctx=canvas.getContext('2d'),W=canvas.width,H=canvas.height,cx=W/2,cy=H/2,r=W*0.42;
+  const sa=Math.PI*0.75,ea=Math.PI*2.25,range=ea-sa;
+  ctx.clearRect(0,0,W,H);
+  ctx.beginPath();ctx.arc(cx,cy,r,sa,ea);ctx.strokeStyle='#1e293b';ctx.lineWidth=14;ctx.lineCap='round';ctx.stroke();
+  if(pressure!==null){
+    const frac=Math.min(1,Math.max(0,pressure/60)),col=pressureColour(pressure,target);
+    ctx.beginPath();ctx.arc(cx,cy,r,sa,sa+frac*range);ctx.strokeStyle=col;ctx.lineWidth=14;ctx.lineCap='round';ctx.stroke();
+    ctx.shadowBlur=12;ctx.shadowColor=col;ctx.beginPath();ctx.arc(cx,cy,r,sa,sa+frac*range);ctx.strokeStyle=col;ctx.lineWidth=10;ctx.stroke();ctx.shadowBlur=0;
+    const tf=Math.min(1,target/60),ta=sa+tf*range;
+    ctx.beginPath();ctx.moveTo(cx+Math.cos(ta)*(r-10),cy+Math.sin(ta)*(r-10));ctx.lineTo(cx+Math.cos(ta)*(r+2),cy+Math.sin(ta)*(r+2));ctx.strokeStyle='#94a3b8';ctx.lineWidth=2;ctx.stroke();
+  }
+}
+function pressureColour(psi,target){
+  if(psi<=THRESHOLD.critical)return'#f87171';
+  if(psi<=THRESHOLD.low)return'#fbbf24';
+  if(psi>=THRESHOLD.high)return'#f87171';
+  if(Math.abs(psi-target)<=2)return'#4ade80';
+  return'#38bdf8';
+}
+function pressureStatus(psi){if(psi===null)return'standby';if(psi<=THRESHOLD.critical)return'danger';if(psi<=THRESHOLD.low)return'warn';if(psi>=THRESHOLD.high)return'danger';return'ok';}
+function formatPressure(psi){if(psi===null)return'--';const v=psi*UNIT_FACTOR[state.unit];return state.unit==='psi'?Math.round(v):v.toFixed(2);}
+function formatTime(d){return d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'});}
+
+function updateUI(){
+  let worst='standby',sum=0,count=0;const alerts=[];
+  TYRE_IDS.forEach(id=>{
+    const t=state.tyres[id],psi=t.pressure,status=pressureStatus(psi),display=formatPressure(psi),ul=UNIT_LABEL[state.unit];
+    const bp=document.getElementById('bp-'+id),badge=document.getElementById('badge-'+id);
+    if(bp)bp.textContent=display;
+    if(badge){badge.className='tyre-badge '+(status!=='standby'?status:'');if(state.selected===id)badge.classList.add('selected');}
+    const card=document.getElementById('card-'+id),ind=document.getElementById('ind-'+id);
+    if(card){card.className='tyre-card '+(status!=='standby'?status:'');if(state.selected===id)card.classList.add('selected');}
+    if(ind)ind.className='tyre-indicator '+(status!=='standby'?status:'');
+    const gv=document.getElementById('gv-'+id),gu=document.getElementById('gu-'+id);
+    if(gv){gv.textContent=display;gv.style.color=psi!==null?pressureColour(psi,state.target):'#8b949e';}
+    if(gu)gu.textContent=ul;
+    drawGauge(id,psi,state.target);
+    const tempEl=document.getElementById('temp-'+id),tsEl=document.getElementById('ts-'+id);
+    if(tempEl)tempEl.textContent=t.temp!==null?Math.round(t.temp*10)/10+'°C':'--°C';
+    if(tsEl)tsEl.textContent=t.updated?formatTime(t.updated):'--';
+    if(psi!==null){sum+=psi;count++;}
+    if(status==='danger')worst='danger';
+    else if(status==='warn'&&worst!=='danger')worst='warn';
+    else if(status==='ok'&&worst==='standby')worst='ok';
+    if(status==='danger')alerts.push(id.toUpperCase()+': '+(psi<=THRESHOLD.critical?'CRITICAL LOW':'OVER')+' pressure ('+display+' '+ul+')');
+    else if(status==='warn')alerts.push(id.toUpperCase()+': Low pressure warning ('+display+' '+ul+')');
+  });
+  const avgEl=document.getElementById('avgPressure');
+  if(avgEl)avgEl.innerHTML=count?formatPressure(sum/count)+' <small>'+UNIT_LABEL[state.unit]+'</small>':'-- <small>'+UNIT_LABEL[state.unit]+'</small>';
+  const sysEl=document.getElementById('systemStatus');
+  if(sysEl){const map={standby:['STANDBY',''],ok:['OK','status-ok'],warn:['CAUTION','status-warn'],danger:['ALERT','status-danger']};const[label,cls]=map[worst];sysEl.textContent=label;sysEl.className='stat-value '+cls;}
+  const banner=document.getElementById('alertBanner');
+  if(alerts.length&&banner){document.getElementById('alertMessage').textContent=alerts.join(' | ');banner.style.display='flex';banner.className=worst==='danger'?'alert-banner':'alert-banner warning';}
+  else if(banner)banner.style.display='none';
+}
+
+function log(msg,type='info'){
+  const el=document.getElementById('eventLog');if(!el)return;
+  const e=document.createElement('div');e.className='log-entry '+type;e.textContent='['+formatTime(new Date())+'] '+msg;el.appendChild(e);
+  while(el.children.length>200)el.removeChild(el.firstChild);
+}
+
+const DEMO_BASE={fl:32,fr:31,rl:30,rr:32},DEMO_TEMP={fl:22,fr:23,rl:21,rr:22};
+function startDemo(){
+  TYRE_IDS.forEach(id=>{state.tyres[id].pressure=DEMO_BASE[id]+(Math.random()-0.5)*2;state.tyres[id].temp=DEMO_TEMP[id]+Math.random()*3;state.tyres[id].updated=new Date();});
+  state.demoInterval=setInterval(()=>{
+    TYRE_IDS.forEach(id=>{state.tyres[id].pressure=Math.max(5,Math.min(55,state.tyres[id].pressure+(Math.random()-0.505)*0.15));state.tyres[id].temp=Math.max(10,Math.min(80,state.tyres[id].temp+(Math.random()-0.5)*0.5));state.tyres[id].updated=new Date();});
+    updateUI();
+  },1500);
+  updateUI();log('Demo mode active — simulating live tyre sensor data','bt');
+}
+function stopDemo(){if(state.demoInterval){clearInterval(state.demoInterval);state.demoInterval=null;}TYRE_IDS.forEach(id=>{state.tyres[id].pressure=null;state.tyres[id].temp=null;state.tyres[id].updated=null;});updateUI();log('Demo mode stopped','info');}
+
+async function connectBluetooth(){
+  if(!navigator.bluetooth){log('Web Bluetooth not supported. Use Chrome or Edge.','danger');document.getElementById('scanStatus').textContent='Not supported — use Chrome or Edge.';return;}
+  const profile=state.protocol==='custom'?null:BLE_PROFILES[state.protocol];
+  const scanStatus=document.getElementById('scanStatus');scanStatus.textContent='Opening device picker…';
+  try{
+    setConnectionState('connecting');
+    const filters=[],optionalServices=[];
+    if(profile){profile.name_filter.forEach(n=>filters.push({namePrefix:n}));profile.services.forEach(s=>optionalServices.push(s));}
+    else{const svc=document.getElementById('customServiceUuid').value.trim();if(svc){filters.push({services:[svc]});optionalServices.push(svc);}}
+    const device=await navigator.bluetooth.requestDevice({filters:filters.length?filters:[{namePrefix:'TPMS'},{namePrefix:'Tire'},{namePrefix:'Tyre'}],optionalServices});
+    state.btDevice=device;device.addEventListener('gattserverdisconnected',onDisconnected);
+    scanStatus.textContent='Connecting to '+(device.name||'device')+'…';log('Connecting to: '+(device.name||device.id),'bt');
+    const server=await device.gatt.connect();log('GATT connected','bt');
+    const charUuid=state.protocol==='custom'?document.getElementById('customCharUuid').value.trim():profile.char_uuid;
+    let char=null;
+    for(const svcUuid of(profile?profile.services:[document.getElementById('customServiceUuid').value.trim()])){try{const svc=await server.getPrimaryService(svcUuid);char=await svc.getCharacteristic(charUuid);break;}catch(_){}}
+    if(!char){const services=await server.getPrimaryServices();for(const svc of services){try{const chars=await svc.getCharacteristics();if(chars.length){char=chars[0];break;}}catch(_){}}}
+    if(!char)throw new Error('No readable characteristic found');
+    state.btChar=char;char.addEventListener('characteristicvaluechanged',onCharValue);await char.startNotifications();
+    setConnectionState('connected',device.name||device.id);scanStatus.textContent='Connected to '+(device.name||device.id);log('Connected — char '+char.uuid,'bt');closeBtModal();
+  }catch(err){setConnectionState('disconnected');const msg=err.message||String(err);document.getElementById('scanStatus').textContent='Failed: '+msg;log('Bluetooth error: '+msg,'danger');}
+}
+function onCharValue(e){try{const p=parseTPMSPacket(e.target.value);if(p){p.forEach(({id,pressure,temp})=>{if(!TYRE_IDS.includes(id))return;state.tyres[id].pressure=pressure;state.tyres[id].temp=temp;state.tyres[id].updated=new Date();});updateUI();}}catch(ex){log('Parse error: '+ex.message,'warning');}}
+function parseTPMSPacket(dv){const len=dv.byteLength;if(len<4)return null;if(len>=32){return['fl','fr','rl','rr'].map((id,i)=>({id,pressure:(dv.getUint32(i*8+2,false)/1000)*0.14504,temp:dv.getInt16(i*8+6,false)/10}));}if(len>=8){const w=dv.getUint8(1)&0x03;return[{id:['fl','fr','rl','rr'][w],pressure:dv.getUint16(2,false)*0.1450377,temp:dv.getInt8(4)}];}return null;}
+function onDisconnected(){state.btChar=null;state.btDevice=null;setConnectionState('disconnected');log('Bluetooth device disconnected','warning');updateUI();}
+async function disconnectBluetooth(){if(state.btDevice?.gatt.connected)state.btDevice.gatt.disconnect();onDisconnected();}
+function setConnectionState(s,name=''){const dot=document.getElementById('statusDot'),text=document.getElementById('statusText'),btn=document.getElementById('bluetoothBtn');if(dot)dot.className='status-dot '+s;const labels={disconnected:'Disconnected',connecting:'Connecting…',connected:'Connected: '+name,demo:'Demo Mode'};if(text)text.textContent=labels[s]||s;if(btn)btn.textContent=s==='connected'?'Disconnect':'Connect';}
+
+const tpms={
+  toggleBluetooth(){if(state.btDevice?.gatt.connected)disconnectBluetooth();else openBtModal();},
+  toggleDemo(){if(state.demo){state.demo=false;stopDemo();setConnectionState('disconnected');document.getElementById('demoBtn').classList.remove('active');}else{if(state.btDevice?.gatt.connected)disconnectBluetooth();state.demo=true;setConnectionState('demo');document.getElementById('demoBtn').classList.add('active');startDemo();}},
+  selectTyre(id){state.selected=state.selected===id?null:id;updateUI();},
+  setTarget(val){const v=parseFloat(val);if(!isNaN(v)&&v>0){state.target=v;updateUI();log('Target pressure set to '+v+' PSI','info');}},
+  setUnit(unit){state.unit=unit;['psi','bar','kpa'].forEach(u=>{const b=document.getElementById('unit'+u.charAt(0).toUpperCase()+u.slice(1));if(b)b.className='unit-btn'+(u===unit?' active':'');});updateUI();},
+  setProtocol(val){state.protocol=val;const r=document.getElementById('customUuidRow');if(r)r.style.display=val==='custom'?'block':'none';},
+  startBluetoothScan(){connectBluetooth();},
+  closeBtModal(){closeBtModal();},
+  clearLog(){const el=document.getElementById('eventLog');if(el)el.innerHTML='';}
+};
+function openBtModal(){document.getElementById('btModal').style.display='flex';}
+function closeBtModal(){document.getElementById('btModal').style.display='none';}
+document.getElementById('btModal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeBtModal();});
+updateUI();
+log('TPMS Dashboard v1.0 ready | '+(navigator.bluetooth?'Web Bluetooth supported':'Web Bluetooth not available — use Demo Mode'),'info');
+</script>
 </body>
 </html>

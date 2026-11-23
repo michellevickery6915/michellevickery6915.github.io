@@ -104,6 +104,27 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-se
 .bt-info .note { font-size:0.75rem; color:var(--text-dim); margin-top:0.75rem; background:var(--bg-panel); border-radius:6px; padding:0.5rem 0.75rem; border-left:3px solid var(--blue); }
 .scan-status { font-size:0.8rem; color:var(--text-dim); margin-top:0.5rem; min-height:1.2rem; }
 select,.text-input { width:100%; background:var(--bg-panel); border:1px solid var(--border); border-radius:6px; color:var(--text); font-size:0.875rem; padding:0.45rem 0.75rem; }
+.vehicle-section{display:flex;flex-direction:column;gap:1rem}
+.section-hdr{display:flex;align-items:center;gap:0.75rem}
+.section-title{font-size:0.85rem;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-dim)}
+.section-badge{font-size:0.65rem;padding:0.15rem 0.5rem;border-radius:4px;background:rgba(56,189,248,0.1);color:var(--blue);border:1px solid rgba(56,189,248,0.3)}
+.vd-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:1rem}
+.vd-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;display:flex;flex-direction:column;gap:0.6rem}
+.vd-card-hdr{display:flex;justify-content:space-between;align-items:center}
+.vd-lbl{font-size:0.75rem;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.04em}
+.vd-big{font-size:2.4rem;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
+.vd-sub{font-size:0.75rem;color:var(--text-dim)}
+.rpm-bar-wrap{height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:0.15rem}
+.rpm-bar{height:100%;width:0;background:var(--green);border-radius:2px;transition:width 0.3s}
+.o2-volt{font-size:1.6rem;font-weight:700;font-variant-numeric:tabular-nums}
+.o2-bar-wrap{display:flex;flex-direction:column;gap:0.25rem}
+.o2-track{position:relative;height:8px;background:var(--border);border-radius:4px;overflow:visible}
+.o2-fill{height:100%;width:50%;background:var(--blue);border-radius:4px;transition:width 0.4s,background 0.4s}
+.o2-tick{position:absolute;top:-2px;left:50%;width:2px;height:12px;background:var(--text-dim);border-radius:1px;transform:translateX(-50%)}
+.o2-axis{display:flex;justify-content:space-between;font-size:0.6rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.04em}
+.o2-trim-lbl{font-size:0.8rem;color:var(--text-dim)}
+.o2-status{font-size:0.75rem;font-weight:700;letter-spacing:0.04em}
+.o2-status.lean{color:var(--blue)} .o2-status.rich{color:var(--yellow)} .o2-status.ok{color:var(--green)}
 ::-webkit-scrollbar{width:6px} ::-webkit-scrollbar-track{background:transparent} ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
   </style>
 </head>
@@ -196,6 +217,37 @@ select,.text-input { width:100%; background:var(--bg-panel); border:1px solid va
       </div>
     </section>
 
+    <section class="vehicle-section">
+      <div class="section-hdr"><h2 class="section-title">Vehicle Data</h2><span class="section-badge" id="vdBadge">Demo</span></div>
+      <div class="vd-grid">
+        <div class="vd-card">
+          <div class="vd-card-hdr"><span class="vd-lbl">Speed</span><div class="unit-toggle"><button class="unit-btn active" id="unitKmh" onclick="tpms.setSpeedUnit('kmh')">km/h</button><button class="unit-btn" id="unitMph" onclick="tpms.setSpeedUnit('mph')">mph</button></div></div>
+          <div class="vd-big" id="vd-speed">--</div>
+          <div class="vd-sub" id="vd-speed-lbl">km/h</div>
+        </div>
+        <div class="vd-card">
+          <div class="vd-card-hdr"><span class="vd-lbl">Engine RPM</span></div>
+          <div class="vd-big" id="vd-rpm">--</div>
+          <div class="vd-sub">RPM</div>
+          <div class="rpm-bar-wrap"><div class="rpm-bar" id="rpm-bar"></div></div>
+        </div>
+        <div class="vd-card">
+          <div class="vd-card-hdr"><span class="vd-lbl">O2 · B1 Sensor 1</span></div>
+          <div class="o2-volt" id="o2v-0">-- V</div>
+          <div class="o2-bar-wrap"><div class="o2-track"><div class="o2-fill" id="o2f-0"></div><div class="o2-tick"></div></div><div class="o2-axis"><span>Lean</span><span>Rich</span></div></div>
+          <div class="o2-trim-lbl" id="o2trim-0">Fuel trim: --</div>
+          <div class="o2-status" id="o2st-0">--</div>
+        </div>
+        <div class="vd-card">
+          <div class="vd-card-hdr"><span class="vd-lbl">O2 · B1 Sensor 2</span></div>
+          <div class="o2-volt" id="o2v-1">-- V</div>
+          <div class="o2-bar-wrap"><div class="o2-track"><div class="o2-fill" id="o2f-1"></div><div class="o2-tick"></div></div><div class="o2-axis"><span>Lean</span><span>Rich</span></div></div>
+          <div class="o2-trim-lbl" id="o2trim-1">Fuel trim: --</div>
+          <div class="o2-status" id="o2st-1">--</div>
+        </div>
+      </div>
+    </section>
+
     <section class="log-section">
       <div class="log-header"><h2>Event Log</h2><button class="btn-ghost" onclick="tpms.clearLog()">Clear</button></div>
       <div class="log-body" id="eventLog"><div class="log-entry info">System initialised. Enable Demo Mode to see live gauges.</div></div>
@@ -241,7 +293,7 @@ const BLE_PROFILES={tpms_ble:{services:[0x180a,'fbb0','00001816-0000-1000-8000-0
 const UNIT_FACTOR={psi:1,bar:0.0689476,kpa:6.89476};
 const UNIT_LABEL={psi:'PSI',bar:'BAR',kpa:'kPa'};
 const THRESHOLD={low:26,critical:20,high:44};
-const state={tyres:{fl:{pressure:null,temp:null,updated:null},fr:{pressure:null,temp:null,updated:null},rl:{pressure:null,temp:null,updated:null},rr:{pressure:null,temp:null,updated:null}},target:32,unit:'psi',selected:null,demo:false,demoInterval:null,btDevice:null,btChar:null,protocol:'tpms_ble'};
+const state={tyres:{fl:{pressure:null,temp:null,updated:null},fr:{pressure:null,temp:null,updated:null},rl:{pressure:null,temp:null,updated:null},rr:{pressure:null,temp:null,updated:null}},vehicle:{speed:null,rpm:null,o2:[null,null],o2Trim:[null,null],updated:null},target:32,unit:'psi',speedUnit:'kmh',selected:null,demo:false,demoInterval:null,btDevice:null,btChar:null,btWriteChar:null,protocol:'tpms_ble'};
 
 function drawGauge(id,pressure,target){
   const canvas=document.getElementById('gauge-'+id);if(!canvas)return;
@@ -312,11 +364,69 @@ function startDemo(){
   TYRE_IDS.forEach(id=>{state.tyres[id].pressure=DEMO_BASE[id]+(Math.random()-0.5)*2;state.tyres[id].temp=DEMO_TEMP[id]+Math.random()*3;state.tyres[id].updated=new Date();});
   state.demoInterval=setInterval(()=>{
     TYRE_IDS.forEach(id=>{state.tyres[id].pressure=Math.max(5,Math.min(55,state.tyres[id].pressure+(Math.random()-0.505)*0.15));state.tyres[id].temp=Math.max(10,Math.min(80,state.tyres[id].temp+(Math.random()-0.5)*0.5));state.tyres[id].updated=new Date();});
-    updateUI();
+    const t=Date.now()/1000;
+    state.vehicle.speed=Math.max(0,65+55*Math.sin(t*0.08)+(Math.random()-0.5)*3);
+    state.vehicle.rpm=Math.max(800,Math.round(state.vehicle.speed*25+900+(Math.random()-0.5)*150));
+    state.vehicle.o2[0]=Math.min(1,Math.max(0,0.45+0.4*Math.sin(t*1.5)));
+    state.vehicle.o2Trim[0]=Math.sin(t*0.4)*5;
+    state.vehicle.o2[1]=Math.min(1,Math.max(0.55,0.65+0.07*Math.sin(t*0.6)));
+    state.vehicle.o2Trim[1]=(Math.random()-0.5)*2;
+    state.vehicle.updated=new Date();
+    updateUI();updateVehicleUI();
   },1500);
   updateUI();log('Demo mode active — simulating live tyre sensor data','bt');
 }
-function stopDemo(){if(state.demoInterval){clearInterval(state.demoInterval);state.demoInterval=null;}TYRE_IDS.forEach(id=>{state.tyres[id].pressure=null;state.tyres[id].temp=null;state.tyres[id].updated=null;});updateUI();log('Demo mode stopped','info');}
+function stopDemo(){if(state.demoInterval){clearInterval(state.demoInterval);state.demoInterval=null;}TYRE_IDS.forEach(id=>{state.tyres[id].pressure=null;state.tyres[id].temp=null;state.tyres[id].updated=null;});state.vehicle={speed:null,rpm:null,o2:[null,null],o2Trim:[null,null],updated:null};updateUI();updateVehicleUI();log('Demo mode stopped','info');}
+
+let obd2Buf='',obd2Idx=0;
+const OBD2_Q=['010D\r','010C\r','0114\r','0115\r'];
+function sendOBD2(){
+  if(!state.btWriteChar||state.protocol!=='obd2')return;
+  const pid=OBD2_Q[obd2Idx];obd2Idx=(obd2Idx+1)%OBD2_Q.length;
+  const val=new TextEncoder().encode(pid);
+  try{state.btWriteChar.writeValueWithoutResponse?state.btWriteChar.writeValueWithoutResponse(val):state.btWriteChar.writeValue(val);}catch(_){}
+}
+function handleOBD2Data(dv){
+  obd2Buf+=new TextDecoder().decode(dv);
+  if(!obd2Buf.includes('>'))return;
+  const h=obd2Buf.replace(/[\r\n> ]/g,'').toUpperCase();obd2Buf='';
+  if(h.startsWith('410D')&&h.length>=6)state.vehicle.speed=parseInt(h.slice(4,6),16);
+  else if(h.startsWith('410C')&&h.length>=8)state.vehicle.rpm=((parseInt(h.slice(4,6),16)<<8)|parseInt(h.slice(6,8),16))/4;
+  else if((h.startsWith('4114')||h.startsWith('4115'))&&h.length>=8){
+    const i=h.startsWith('4114')?0:1,a=parseInt(h.slice(4,6),16),b=parseInt(h.slice(6,8),16);
+    state.vehicle.o2[i]=a*0.005;state.vehicle.o2Trim[i]=b!==255?(b-128)*100/128:null;
+  }
+  state.vehicle.updated=new Date();updateVehicleUI();sendOBD2();
+}
+async function initOBD2(){
+  if(!state.btWriteChar)return;
+  const enc=new TextEncoder();
+  for(const c of['ATZ\r','ATE0\r','ATL0\r','ATH0\r','ATSP0\r']){
+    try{state.btWriteChar.writeValueWithoutResponse?await state.btWriteChar.writeValueWithoutResponse(enc.encode(c)):await state.btWriteChar.writeValue(enc.encode(c));}catch(_){}
+    await new Promise(r=>setTimeout(r,300));
+  }
+  obd2Buf='';obd2Idx=0;sendOBD2();log('OBD2 ready — polling speed, RPM, O2 sensors','bt');
+}
+function updateVehicleUI(){
+  const v=state.vehicle;
+  const badge=document.getElementById('vdBadge');
+  if(badge)badge.textContent=state.demo?'Demo':state.protocol==='obd2'?'OBD2 Live':'OBD2 Required';
+  const spEl=document.getElementById('vd-speed'),spLbl=document.getElementById('vd-speed-lbl');
+  if(spEl)spEl.textContent=v.speed!==null?Math.round(state.speedUnit==='mph'?v.speed*0.621371:v.speed):'--';
+  if(spLbl)spLbl.textContent=state.speedUnit==='mph'?'mph':'km/h';
+  const rEl=document.getElementById('vd-rpm'),rBar=document.getElementById('rpm-bar');
+  if(rEl)rEl.textContent=v.rpm!==null?Math.round(v.rpm).toLocaleString():'--';
+  if(rBar)rBar.style.width=(v.rpm!==null?Math.min(100,v.rpm/8000*100):0)+'%';
+  [0,1].forEach(i=>{
+    const volt=v.o2[i],trim=v.o2Trim[i];
+    const vEl=document.getElementById('o2v-'+i),fill=document.getElementById('o2f-'+i);
+    const tEl=document.getElementById('o2trim-'+i),sEl=document.getElementById('o2st-'+i);
+    if(vEl)vEl.textContent=volt!==null?volt.toFixed(3)+' V':'-- V';
+    if(fill){const pct=volt!==null?Math.min(100,Math.max(0,volt*100)):50;fill.style.width=pct+'%';fill.style.background=volt!==null?(volt<0.35?'var(--blue)':volt>0.65?'var(--yellow)':'var(--green)'):'var(--border)';}
+    if(tEl)tEl.textContent=trim!==null?'Fuel trim: '+(trim>0?'+':'')+trim.toFixed(1)+'%':'Fuel trim: --';
+    if(sEl){if(volt===null){sEl.textContent='--';sEl.className='o2-status';}else if(volt<0.3){sEl.textContent='LEAN';sEl.className='o2-status lean';}else if(volt>0.7){sEl.textContent='RICH';sEl.className='o2-status rich';}else{sEl.textContent='NORMAL';sEl.className='o2-status ok';}}
+  });
+}
 
 function isInIframe(){try{return window.self!==window.top;}catch(_){return true;}}
 function updateBtNote(){const n=document.getElementById('btNote');if(!n)return;if(isInIframe()){n.innerHTML='<strong>Bluetooth is blocked in this preview.</strong> Use your live site: <a href="https://michellevickery6915.github.io" target="_blank" style="color:var(--blue)">michellevickery6915.github.io</a>';n.style.borderLeftColor='var(--yellow)';n.style.color='var(--yellow)';}else if(!navigator.bluetooth){n.textContent='Web Bluetooth is not supported in this browser. Use Chrome or Edge on Android or desktop.';n.style.borderLeftColor='var(--red)';n.style.color='var(--red)';}}
@@ -339,11 +449,12 @@ async function connectBluetooth(){
     for(const svcUuid of(profile?profile.services:[document.getElementById('customServiceUuid').value.trim()])){try{const svc=await server.getPrimaryService(svcUuid);char=await svc.getCharacteristic(charUuid);break;}catch(_){}}
     if(!char){const services=await server.getPrimaryServices();for(const svc of services){try{const chars=await svc.getCharacteristics();if(chars.length){char=chars[0];break;}}catch(_){}}}
     if(!char)throw new Error('No readable characteristic found');
-    state.btChar=char;char.addEventListener('characteristicvaluechanged',onCharValue);await char.startNotifications();
+    state.btChar=char;state.btWriteChar=char;char.addEventListener('characteristicvaluechanged',onCharValue);await char.startNotifications();
     setConnectionState('connected',device.name||device.id);scanStatus.textContent='Connected to '+(device.name||device.id);log('Connected — char '+char.uuid,'bt');closeBtModal();
+    if(state.protocol==='obd2')await initOBD2();
   }catch(err){setConnectionState('disconnected');const msg=err.message||String(err);document.getElementById('scanStatus').textContent='Failed: '+msg;log('Bluetooth error: '+msg,'danger');}
 }
-function onCharValue(e){try{const p=parseTPMSPacket(e.target.value);if(p){p.forEach(({id,pressure,temp})=>{if(!TYRE_IDS.includes(id))return;state.tyres[id].pressure=pressure;state.tyres[id].temp=temp;state.tyres[id].updated=new Date();});updateUI();}}catch(ex){log('Parse error: '+ex.message,'warning');}}
+function onCharValue(e){if(state.protocol==='obd2'){handleOBD2Data(e.target.value);return;}try{const p=parseTPMSPacket(e.target.value);if(p){p.forEach(({id,pressure,temp})=>{if(!TYRE_IDS.includes(id))return;state.tyres[id].pressure=pressure;state.tyres[id].temp=temp;state.tyres[id].updated=new Date();});updateUI();}}catch(ex){log('Parse error: '+ex.message,'warning');}}
 function parseTPMSPacket(dv){const len=dv.byteLength;if(len<4)return null;if(len>=32){return['fl','fr','rl','rr'].map((id,i)=>({id,pressure:(dv.getUint32(i*8+2,false)/1000)*0.14504,temp:dv.getInt16(i*8+6,false)/10}));}if(len>=8){const w=dv.getUint8(1)&0x03;return[{id:['fl','fr','rl','rr'][w],pressure:dv.getUint16(2,false)*0.1450377,temp:dv.getInt8(4)}];}return null;}
 function onDisconnected(){state.btChar=null;state.btDevice=null;setConnectionState('disconnected');log('Bluetooth device disconnected','warning');updateUI();}
 async function disconnectBluetooth(){if(state.btDevice?.gatt.connected)state.btDevice.gatt.disconnect();onDisconnected();}
@@ -356,6 +467,7 @@ const tpms={
   setTarget(val){const v=parseFloat(val);if(!isNaN(v)&&v>0){state.target=v;updateUI();log('Target pressure set to '+v+' PSI','info');}},
   setUnit(unit){state.unit=unit;['psi','bar','kpa'].forEach(u=>{const b=document.getElementById('unit'+u.charAt(0).toUpperCase()+u.slice(1));if(b)b.className='unit-btn'+(u===unit?' active':'');});updateUI();},
   setProtocol(val){state.protocol=val;const r=document.getElementById('customUuidRow');if(r)r.style.display=val==='custom'?'block':'none';},
+  setSpeedUnit(u){state.speedUnit=u;const kb=document.getElementById('unitKmh'),mb=document.getElementById('unitMph');if(kb)kb.className='unit-btn'+(u==='kmh'?' active':'');if(mb)mb.className='unit-btn'+(u==='mph'?' active':'');updateVehicleUI();},
   startBluetoothScan(){connectBluetooth();},
   closeBtModal(){closeBtModal();},
   clearLog(){const el=document.getElementById('eventLog');if(el)el.innerHTML='';}
@@ -363,7 +475,7 @@ const tpms={
 function openBtModal(){document.getElementById('btModal').style.display='flex';}
 function closeBtModal(){document.getElementById('btModal').style.display='none';}
 document.getElementById('btModal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeBtModal();});
-updateUI();
+updateUI();updateVehicleUI();
 log('TPMS Dashboard v1.0 ready | '+(navigator.bluetooth?'Web Bluetooth supported':'Web Bluetooth not available — use Demo Mode'),'info');
 </script>
 </body>

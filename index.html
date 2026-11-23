@@ -209,7 +209,7 @@ select,.text-input { width:100%; background:var(--bg-panel); border:1px solid va
         <div class="bt-info">
           <h3>Supported Devices</h3>
           <ul><li>Generic BLE TPMS Sensors (4-wheel kit)</li><li>ELM327 OBD2 Bluetooth Adapters</li><li>Steelmate / Tyredog BLE modules</li></ul>
-          <p class="note">Web Bluetooth requires Chrome / Edge on Android or desktop. Not supported on iOS Safari.</p>
+          <p class="note" id="btNote">Web Bluetooth requires Chrome / Edge on Android or desktop. Not supported on iOS Safari.</p>
         </div>
         <div class="bt-scan">
           <button class="btn btn-primary btn-full" onclick="tpms.startBluetoothScan()">
@@ -318,7 +318,10 @@ function startDemo(){
 }
 function stopDemo(){if(state.demoInterval){clearInterval(state.demoInterval);state.demoInterval=null;}TYRE_IDS.forEach(id=>{state.tyres[id].pressure=null;state.tyres[id].temp=null;state.tyres[id].updated=null;});updateUI();log('Demo mode stopped','info');}
 
+function isInIframe(){try{return window.self!==window.top;}catch(_){return true;}}
+function updateBtNote(){const n=document.getElementById('btNote');if(!n)return;if(isInIframe()){n.innerHTML='<strong>Bluetooth is blocked in this preview.</strong> Use your live site: <a href="https://michellevickery6915.github.io" target="_blank" style="color:var(--blue)">michellevickery6915.github.io</a>';n.style.borderLeftColor='var(--yellow)';n.style.color='var(--yellow)';}else if(!navigator.bluetooth){n.textContent='Web Bluetooth is not supported in this browser. Use Chrome or Edge on Android or desktop.';n.style.borderLeftColor='var(--red)';n.style.color='var(--red)';}}
 async function connectBluetooth(){
+  if(isInIframe()){document.getElementById('scanStatus').textContent='Bluetooth is blocked in the preview — visit your live site instead.';return;}
   if(!navigator.bluetooth){log('Web Bluetooth not supported. Use Chrome or Edge.','danger');document.getElementById('scanStatus').textContent='Not supported — use Chrome or Edge.';return;}
   const profile=state.protocol==='custom'?null:BLE_PROFILES[state.protocol];
   const scanStatus=document.getElementById('scanStatus');scanStatus.textContent='Opening device picker…';
@@ -347,7 +350,7 @@ async function disconnectBluetooth(){if(state.btDevice?.gatt.connected)state.btD
 function setConnectionState(s,name=''){const dot=document.getElementById('statusDot'),text=document.getElementById('statusText'),btn=document.getElementById('bluetoothBtn');if(dot)dot.className='status-dot '+s;const labels={disconnected:'Disconnected',connecting:'Connecting…',connected:'Connected: '+name,demo:'Demo Mode'};if(text)text.textContent=labels[s]||s;if(btn)btn.textContent=s==='connected'?'Disconnect':'Connect';}
 
 const tpms={
-  toggleBluetooth(){if(state.btDevice?.gatt.connected)disconnectBluetooth();else openBtModal();},
+  toggleBluetooth(){if(state.btDevice?.gatt.connected)disconnectBluetooth();else{updateBtNote();openBtModal();}},
   toggleDemo(){if(state.demo){state.demo=false;stopDemo();setConnectionState('disconnected');document.getElementById('demoBtn').classList.remove('active');}else{if(state.btDevice?.gatt.connected)disconnectBluetooth();state.demo=true;setConnectionState('demo');document.getElementById('demoBtn').classList.add('active');startDemo();}},
   selectTyre(id){state.selected=state.selected===id?null:id;updateUI();},
   setTarget(val){const v=parseFloat(val);if(!isNaN(v)&&v>0){state.target=v;updateUI();log('Target pressure set to '+v+' PSI','info');}},
